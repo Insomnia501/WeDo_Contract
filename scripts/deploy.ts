@@ -1,10 +1,32 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers, upgrades} from "hardhat";
 
 require('dotenv').config();
 const hre = require("hardhat");
 
+const network_configs = {
+  mumbai: {
+  }, 
+  ethereum: {
+  },
+  moonbase: {
+  }
+}
+
+let config;
+
 
 async function main() {
+
+  if (hre.network.name === "mumbai") {
+    config = network_configs.mumbai
+  } else if (hre.network.name === "moonbase") {
+      config = network_configs.moonbase
+  } else {
+      config = network_configs.ethereum
+  }
+
+  console.log("Network:", hre.network.name);
+
   const contractName = "shell"
   const contractSymbol = "SHE"
   const lastIssueAmount = 10000
@@ -13,13 +35,20 @@ async function main() {
   const usdcTokenAddress = process.env.USDC_CONTRACT_ADDRESS
   const Shell = await ethers.getContractFactory("Shell")
   console.log("Deploying Shell...")
-  const shell = await upgrades.deployProxy(Shell,[contractName, contractSymbol ,committee, lastIssueAmount, shellBoxAddress, usdcTokenAddress])
+  const shell = await upgrades.deployProxy(
+    Shell,
+    [contractName, contractSymbol ,committee, lastIssueAmount, shellBoxAddress, usdcTokenAddress],
+    {
+      kind: "uups",
+    }
+  )
+  await shell.waitForDeployment();
   const shellAddress = await shell.getAddress();
   console.log(shellAddress," shell(proxy) address")
   console.log(await upgrades.erc1967.getImplementationAddress(shellAddress)," getImplementationAddress")
   console.log(await upgrades.erc1967.getAdminAddress(shellAddress)," getAdminAddress")
 
-  await verifyOnBlockscan(shellAddress, [contractName, contractSymbol ,committee, lastIssueAmount, shellBoxAddress, usdcTokenAddress])
+  await verifyOnBlockscan(shellAddress,[])
 
 }
 

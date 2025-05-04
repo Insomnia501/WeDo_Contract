@@ -1,7 +1,6 @@
 import { ethers, upgrades} from "hardhat";
-
-require('dotenv').config();
-const hre = require("hardhat");
+import "dotenv/config";
+//const hre = require("hardhat");
 
 const network_configs = {
   mumbai: {
